@@ -1,0 +1,1 @@
+GraphQL to unify their data sources and streamline backend infrastructure management.

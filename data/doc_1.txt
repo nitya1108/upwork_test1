@@ -1,0 +1,1 @@
+GraphQL improves data fetching efficiency by allowing clients to request only the specific data they need, reducing over-fetching and under-fetching in APIs.

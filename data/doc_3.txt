@@ -1,0 +1,1 @@
+GraphQL enhances API performance by minimizing server load, as it avoids sending unnecessary data and reduces the number of requests.

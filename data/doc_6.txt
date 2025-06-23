@@ -1,0 +1,2 @@
+Security best practices for GraphQL include query depth limiting, query complexity analysis, and user authentication to prevent data leakage.
+

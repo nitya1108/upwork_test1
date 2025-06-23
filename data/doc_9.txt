@@ -1,0 +1,1 @@
+GraphQL works well with microservices architecture by acting as an abstraction layer that aggregates multiple backend services.

@@ -1,0 +1,1 @@
+GraphQL simplifies client-side development by offering a single endpoint to access multiple resources and providing more flexible query capabilities.

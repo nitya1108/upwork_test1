@@ -1,0 +1,1 @@
+GraphQL can improve mobile app performance by reducing network usage and enabling fine-grained data retrieval.
