@@ -1,34 +1,30 @@
- 
 from groq import Groq
 import os
+import asyncio
 from dotenv import load_dotenv
 
 load_dotenv()
+client = Groq(api_key=os.getenv('GROQ_API_KEY'))
 
-# Initialize Groq client
-groq_client = Groq(api_key=os.getenv("GROQ_API_KEY"))
+async def generate_answer(query, context_docs):
+    context = "\n\n".join([f"Source {i+1}:\n{doc}" for i, doc in enumerate(context_docs)])
+    system_prompt = "You are an AI research assistant. Only answer using the provided context. Do not make up facts."
 
-# Function to generate LLM response
-def generate_answer(query, documents,sources):
-    # Prepare context with source tagging
-    context = "\n\n".join([f"[Source: {source}]\n{doc}" for source, doc in zip(sources, documents)])
+    messages = [
+        {"role": "system", "content": system_prompt},
+        {"role": "user", "content": f"Context:\n{context}\n\nQuestion: {query}"}
+    ]
 
-    # Hallucination control prompt
-    prompt = f"""
-You are a helpful research assistant. Only answer based on the provided context. Do not make up any facts.
-
-Context:
-{context}
-
-Question: {query}
-
-Provide the answer as bullet points with citations like this: [Source: doc3.txt]
-    """
-
-    response = groq_client.chat.completions.create(
-        model="llama-3.3-70b-versatile",
-        messages=[{"role": "user", "content": prompt}],
-        temperature=0
+    response_stream = client.chat.completions.create(
+        model="lama-3.3-70b-versatile",
+        messages=messages,
+        stream=True,
     )
 
-    return response.choices[0].message.content.strip()
+    full_response = ""
+    async for chunk in response_stream:
+        if chunk.choices[0].delta.get("content"):
+            token = chunk.choices[0].delta.content
+            full_response += token
+            yield token, full_response
+            await asyncio.sleep(0.01)

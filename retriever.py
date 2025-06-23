@@ -1,38 +1,30 @@
 from sentence_transformers import SentenceTransformer
 import faiss
 import os
+import numpy as np
 
-model = SentenceTransformer('all-MiniLM-L6-v2')  # Embedding model
+model = SentenceTransformer('all-MiniLM-L6-v2')
 
-# Load documents from data folder
-data_dir = "data"
-documents = []
-doc_ids = []
+def load_vector_store():
+    docs = []
+    doc_titles = []
+    for idx, filename in enumerate(os.listdir('data')):
+        with open(f'data/{filename}', 'r', encoding='utf-8') as file:
+            content = file.read()
+            docs.append(content)
+            doc_titles.append(filename.replace('.txt', ''))
 
-for filename in os.listdir(data_dir):
-    if filename.endswith(".txt"):
-        with open(os.path.join(data_dir, filename), 'r', encoding='utf-8') as f:
-            content = f.read()
-            documents.append(content)
-            doc_ids.append(filename)
+    embeddings = model.encode(docs)
+    index = faiss.IndexFlatL2(embeddings.shape[1])
+    index.add(np.array(embeddings))
 
-# Generate embeddings for all documents
-doc_embeddings = model.encode(documents, show_progress_bar=True)
+    return (index, docs), doc_titles
 
-# Create FAISS index
-dimension = doc_embeddings.shape[1]  # Get embedding size
-index = faiss.IndexFlatL2(dimension)  # L2 distance index
-index.add(doc_embeddings)  # Add document vectors to FAISS index
+def retrieve_context(query, vector_store, doc_titles, top_k=3):
+    index, docs = vector_store
+    query_vector = model.encode([query])
+    distances, indices = index.search(query_vector, top_k)
+    retrieved_docs = [docs[i] for i in indices[0]]
+    sources = [doc_titles[i] for i in indices[0]]
+    return retrieved_docs, sources
 
-# Function to get top 3 similar documents based on query
-def get_top_documents(query, k=3):
-    query_embedding = model.encode([query])  # Embed the query
-    distances, indices = index.search(query_embedding, k)  # Search top k
-
-    top_docs = []
-    sources = []
-    for idx in indices[0]:
-        top_docs.append(documents[idx])
-        sources.append(doc_ids[idx])
-
-    return top_docs, sources
